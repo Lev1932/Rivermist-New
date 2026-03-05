@@ -972,9 +972,11 @@
 		. = TRUE
 		if(mind)
 			mind.remove_antag_datum(/datum/antagonist/zombie)
+
 		if(ishuman(src))
 			var/mob/living/carbon/human/human = src
 			human.funeral = FALSE
+
 		if(excess_healing)
 			INVOKE_ASYNC(src, PROC_REF(emote), "breathgasp")
 			log_combat(src, src, "revived")
@@ -1123,6 +1125,7 @@
 
 	if(m_intent == MOVE_INTENT_RUN)
 		sprinted_tiles++
+		sprinted_since_last_dir_change++
 		var/boon = get_learning_boon(/datum/skill/misc/athletics)
 		adjust_experience(/datum/skill/misc/athletics, (STAEND*0.05) * boon)
 
@@ -1261,6 +1264,10 @@
 				resist_leash() //trying to remove a leash.
 			else
 				resist_restraints() //trying to remove cuffs.
+			var/datum/component/riding/human/riding_datum = GetComponent(/datum/component/riding/human)
+			if(HAS_TRAIT(src, TRAIT_PONYGIRL_RIDEABLE) && riding_datum)
+				for(var/mob/M in buckled_mobs)
+					riding_datum.force_dismount(M)
 
 /mob/living/carbon/human/verb/ic_pray()
 	set name = "Prayer"
@@ -1277,22 +1284,19 @@
 	if(stat)
 		return
 	surrendering = 1
-	if(alert(src, "Yield in surrender?",,"YES","NO") == "YES")
-		record_round_statistic(STATS_YIELDS)
-		changeNext_move(CLICK_CD_EXHAUSTED)
-		var/image/flaggy = image('icons/effects/effects.dmi',src,"surrender",ABOVE_MOB_LAYER)
-		flaggy.appearance_flags = RESET_TRANSFORM|KEEP_APART
-		flaggy.transform = null
-		flaggy.pixel_y = 12
-		flick_overlay_view(flaggy, 150)
-		drop_all_held_items()
-		Stun(150)
-		src.visible_message("<span class='notice'>[src] yields!</span>")
-		playsound(src, 'sound/misc/surrender.ogg', 100, FALSE, -1)
-		toggle_cmode()
-		sleep(150)
-		log_attack("[key_name(src)] has yielded!")
-	surrendering = 0
+	if(!alert(src, "Yield in surrender?",,"YES","NO") == "YES")
+		return
+	record_round_statistic(STATS_YIELDS)
+	changeNext_move(CLICK_CD_EXHAUSTED)
+	var/mutable_appearance/flaggy = mutable_appearance('icons/effects/effects.dmi', "surrender", ABOVE_MOB_LAYER, appearance_flags = RESET_TRANSFORM|KEEP_APART)
+	flaggy.pixel_y = 12
+	flick_overlay_view(flaggy, 150)
+	drop_all_held_items()
+	Stun(15 SECONDS)
+	visible_message("<span class='notice'>[src] yields!</span>")
+	playsound(src, 'sound/misc/surrender.ogg', 100, FALSE, -1)
+	toggle_cmode()
+	addtimer(VARSET_CALLBACK(src, surrendering, FALSE), 15 SECONDS)
 
 /mob/living
 	var/had_pacifist = FALSE

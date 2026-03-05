@@ -28,6 +28,8 @@
 	prevent_crits = ALL_EXCEPT_BLUNT
 	item_weight = 9 * STEEL_MULTIPLIER
 
+	material_category = ARMOR_MAT_PLATE
+
 /obj/item/clothing/pants/platelegs/Initialize()
 	. = ..()
 	AddComponent(/datum/component/item_equipped_movement_rustle, custom_sounds = SFX_PLATE_STEP)
@@ -107,7 +109,7 @@
 
 /obj/item/clothing/pants/platelegs/matthios
 	name = "gilded leggings"
-	desc = "Plate leggings. perfect for sprinting away after a theft of mammon, or life."
+	desc = "Plate leggings. perfect for sprinting away after a theft of amna, or life."
 	icon_state = "matthioslegs"
 	icon = 'icons/roguetown/clothing/special/evilarmor.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/evilarmor.dmi'

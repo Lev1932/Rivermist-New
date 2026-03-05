@@ -413,11 +413,12 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		return
 
 	remove_client_colour(/datum/client_colour/monochrome)
-	client.view_size.setDefault(getScreenSize())
+	client.view_size.setDefault(client.view_size.getScreenSize())
 	mind.current_ghost = null
 	mind.current.ckey = ckey(key)
+	if(HAS_TRAIT_FROM(mind.current, TRAIT_NOSLEEP, "aghost"))
+		REMOVE_TRAIT(mind.current, TRAIT_NOSLEEP, "aghost")
 	return TRUE
-
 
 /mob/dead/observer/returntolobby(modifier as num)
 	set name = "{RETURN TO LOBBY}"
@@ -461,8 +462,6 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 	M.key = key
 //	M.Login()	//wat
-	return
-
 
 /mob/dead/observer/verb/stay_dead()
 	set category = "Spirit"
@@ -760,7 +759,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		return
 	var/bt = world.time
 	SEND_SOUND(src, sound('sound/misc/notice (2).ogg'))
-	if(alert(src, "You have been summoned to destroy Vanderlin!", "Join the Horde", "Yes", "No") == "Yes")
+	if(alert(src, "You have been summoned to destroy Rivermist Hollow!", "Join the Horde", "Yes", "No") == "Yes")
 		if(world.time > bt + 5 MINUTES)
 			to_chat(src, "<span class='warning'>Too late.</span>")
 			return FALSE

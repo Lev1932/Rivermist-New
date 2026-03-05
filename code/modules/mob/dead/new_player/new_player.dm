@@ -272,6 +272,7 @@ GLOBAL_LIST_INIT(roleplay_readme, world.file2list("strings/rt/Lore_Primer.txt"))
 	observer.key = key
 	observer.client = client
 	observer.set_ghost_appearance()
+	observer.mind = mind
 	if(observer.client && observer.client.prefs)
 		observer.real_name = observer.client.prefs.real_name
 		observer.name = observer.real_name
@@ -455,7 +456,17 @@ GLOBAL_LIST_INIT(roleplay_readme, world.file2list("strings/rt/Lore_Primer.txt"))
 
 	log_manifest(character.mind.key,character.mind,character,latejoin = TRUE)
 
+
+	if(!ishuman(character))
+		return
+	var/mob/living/carbon/human/human_character = character
+
 	if(job.rune_linked)
+		for(var/obj/structure/resurrection_rune/rune_l in GLOB.global_resurrunes)
+			if(rune_l.is_main)
+				continue
+			human_character.get_rune_linked(rune_l)
+			break
 		GLOB.rune_roundstart_mobs += character
 
 

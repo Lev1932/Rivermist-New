@@ -269,6 +269,7 @@
 	max_integrity = INTEGRITY_STRONGEST
 	prevent_crits = ALL_EXCEPT_BLUNT
 
+	material_category = ARMOR_MAT_CHAINMAIL
 
 /obj/item/clothing/neck/chaincoif/AdjustClothes(mob/user)
 	if(loc == user)
@@ -349,6 +350,8 @@
 	max_integrity = INTEGRITY_STRONGEST
 	prevent_crits = ALL_EXCEPT_STAB
 
+	material_category = ARMOR_MAT_PLATE
+
 /obj/item/clothing/neck/bevor/Initialize()
 	. = ..()
 	ADD_TRAIT(src, TRAIT_HARD_TO_STEAL, TRAIT_GENERIC)
@@ -384,6 +387,8 @@
 	body_parts_covered = NECK
 	max_integrity = INTEGRITY_STRONG
 	prevent_crits = ALL_EXCEPT_STAB
+
+	material_category = ARMOR_MAT_PLATE
 
 /obj/item/clothing/neck/gorget/Initialize()
 	. = ..()
@@ -546,6 +551,8 @@
 	max_integrity = INTEGRITY_STRONGEST
 	prevent_crits = ALL_EXCEPT_BLUNT
 
+	material_category = ARMOR_MAT_CHAINMAIL
+
 /obj/item/clothing/neck/highcollier/AdjustClothes(mob/user)
 	if(loc == user)
 		if(adjustable == CAN_CADJUST)
@@ -623,13 +630,13 @@
 	if(isturf(A))
 		for(var/obj/item/I in A.contents)
 			total_sellprice += I.sellprice
-		to_chat(user, span_notice("Everything on the ground is worth [total_sellprice] mammons."))
+		to_chat(user, span_notice("Everything on the ground is worth [total_sellprice] amnas."))
 	else if(istype(A, /obj/item))
 		var/obj/item/I = A
 		total_sellprice += I.sellprice
 		for(var/obj/item/item in I.contents)
 			total_sellprice += item.sellprice
-		to_chat(user, span_notice("The item and its contents are worth [total_sellprice] mammons."))
+		to_chat(user, span_notice("The item and its contents are worth [total_sellprice] amnas."))
 
 /obj/item/clothing/neck/shalal
 	name = "desert rider medal"

@@ -455,8 +455,9 @@ GLOBAL_LIST_INIT(fish_compatible_fluid_types, list(
 /obj/item/reagent_containers/food/snacks/fish/proc/get_health_warnings(mob/user, always_deep = FALSE)
 	if(!always_deep)
 		return
+
 	if(status == FISH_DEAD)
-		return span_deadsay("It's dead.")
+		return span_warning("It's dead.")
 
 	var/list/warnings = list()
 	if(get_starvation_mult())
@@ -1327,7 +1328,7 @@ GLOBAL_LIST_INIT(fish_compatible_fluid_types, list(
 
 /obj/item/reagent_containers/food/snacks/chocolate_carp
 	name = "le carp au chocolat"
-	desc = "Plundered Grenzelhoftian chocolate drizzled over fish, this abomination is a delicacy to dark elves. In this case the eyeless cave fish has been substituted for a carp."
+	desc = "Plundered Darkholdian chocolate drizzled over fish, this abomination is a delicacy to dark elves. In this case the eyeless cave fish has been substituted for a carp."
 	icon_state = "chocolatecarp"
 	bitesize = 4
 	tastes = list("a horrible clash of salty fish and sweet chocolate" = 1)

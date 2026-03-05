@@ -140,6 +140,32 @@
 				src.put_in_hands(piercings_item)
 				piercings_item = null
 				regenerate_icons()
+	if(HAS_TRAIT(src, TRAIT_PONYGIRL_RIDEABLE))
+		var/mob/living/livinguser = user
+		user.visible_message(span_notice("[livinguser] is trying to mount [src]..."))
+		if(!do_after(livinguser, 15, target = src))
+			return
+		if(!istype(livinguser))
+			return
+		if(livinguser.incapacitated())
+			return
+		if(HAS_TRAIT(user, TRAIT_RESTRAINED))
+			return
+		if(livinguser.mobility_flags & (MOBILITY_MOVE|MOBILITY_STAND) != (MOBILITY_MOVE|MOBILITY_STAND))
+			return
+		if(!can_buckle)
+			return
+		if(buckled_mobs?.len)
+			return
+		if(!buckle_mob(user, TRUE, FALSE))
+			return
+		var/datum/component/riding/human/riding_datum = LoadComponent(/datum/component/riding/human)
+		riding_datum.vehicle_move_delay = 4
+		if(user.mind)
+			var/riding_skill = user.get_skill_level(/datum/skill/misc/riding)
+			if(riding_skill)
+				riding_datum.vehicle_move_delay = max(1, 3 - (riding_skill * 0.2))
+		return TRUE
 
 /mob/living/carbon/human/Initialize()
 	add_verb(src, /mob/living/proc/lay_down)
@@ -177,7 +203,7 @@
 /mob/living/carbon/human/ZImpactDamage(turf/T, levels)
 	var/mob/living/carbon/V = src
 	var/obj/item/bodypart/affecting
-	var/dam = levels * rand(10,50)
+	var/dam = levels * rand(5,10) // less damage
 	V.add_stress(/datum/stress_event/felldown)
 	record_round_statistic(STATS_MOAT_FALLERS, -1) // If you get your ankles broken you fall. This makes sure only those that DIDN'T get damage get counted.
 	record_round_statistic(STATS_ANKLES_BROKEN)
@@ -199,7 +225,7 @@
 			chat_message = "<span class='danger'>I fall on my head!</span>"
 	if(affecting && apply_damage(dam, BRUTE, affecting, run_armor_check(affecting, "blunt", damage = dam)))
 		update_damage_overlays()
-		if(levels >= 1)
+		if(levels >= 2)
 			//absurd damage to guarantee a crit
 			affecting.try_crit(BCLASS_TWIST, 300)
 
@@ -227,7 +253,7 @@
 
 /mob/living/carbon/human/show_inv(mob/user, extra_only = FALSE)
 	user.set_machine(src)
-	var/obscured = check_obscured_slots()
+	var/list/obscured = check_obscured_slots()
 	var/list/dat = list()
 
 	dat += "<table>"
@@ -247,22 +273,22 @@
 
 		dat += "<tr><td><B>HEAD</B></td></tr>"
 
-		if(obscured & ITEM_SLOT_HEAD)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_HEAD)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_HEAD]'>[(head && !(head.item_flags & ABSTRACT)) ? head : "<font color=grey>Head</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_MASK)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_MASK)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_MASK]'>[(wear_mask && !(wear_mask.item_flags & ABSTRACT)) ? wear_mask : "<font color=grey>Mask</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_MOUTH)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_MOUTH)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_MOUTH]'>[(mouth && !(mouth.item_flags & ABSTRACT)) ? mouth : "<font color=grey>Mouth</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_NECK)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_NECK)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_NECK]'>[(wear_neck && !(wear_neck.item_flags & ABSTRACT)) ? wear_neck : "<font color=grey>Neck</font>"]</A></td></tr>"
@@ -271,17 +297,17 @@
 
 		dat += "<tr><td><B>BACK</B></td></tr>"
 
-		if(obscured & ITEM_SLOT_CLOAK)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_CLOAK)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_CLOAK]'>[(cloak && !(cloak.item_flags & ABSTRACT)) ? cloak : "<font color=grey>Cloak</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_BACK_R)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_BACK_R)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_BACK_R]'>[(backr && !(backr.item_flags & ABSTRACT)) ? backr : "<font color=grey>Back</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_BACK_L)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_BACK_L)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_BACK_L]'>[(backl && !(backl.item_flags & ABSTRACT)) ? backl : "<font color=grey>Back</font>"]</A></td></tr>"
@@ -290,27 +316,27 @@
 
 		dat += "<tr><td><B>TORSO</B></td></tr>"
 
-		if(obscured & ITEM_SLOT_ARMOR)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_ARMOR)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_ARMOR]'>[(wear_armor && !(wear_armor.item_flags & ABSTRACT)) ? wear_armor : "<font color=grey>Armor</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_SHIRT)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_SHIRT)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_SHIRT]'>[(wear_shirt && !(wear_shirt.item_flags & ABSTRACT)) ? wear_shirt : "<font color=grey>Shirt</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_GLOVES)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_GLOVES)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_GLOVES]'>[(gloves && !(gloves.item_flags & ABSTRACT)) ? gloves : "<font color=grey>Gloves</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_RING)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_RING)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_RING]'>[(wear_ring && !(wear_ring.item_flags & ABSTRACT)) ? wear_ring : "<font color=grey>Ring</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_WRISTS)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_WRISTS)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_WRISTS]'>[(wear_wrists && !(wear_wrists.item_flags & ABSTRACT)) ? wear_wrists : "<font color=grey>Wrists</font>"]</A></td></tr>"
@@ -319,17 +345,17 @@
 
 		dat += "<tr><td><B>WAIST</B></td></tr>"
 
-		if(obscured & ITEM_SLOT_BELT)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_BELT)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_BELT]'>[(belt && !(belt.item_flags & ABSTRACT)) ? belt : "<font color=grey>Belt</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_BELT_R)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_BELT_R)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_BELT_R]'>[(beltr && !(beltr.item_flags & ABSTRACT)) ? beltr : "<font color=grey>Hip</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_BELT_L)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_BELT_L)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_BELT_L]'>[(beltl && !(beltl.item_flags & ABSTRACT)) ? beltl : "<font color=grey>Hip</font>"]</A></td></tr>"
@@ -338,12 +364,12 @@
 
 		dat += "<tr><td><B>LEGS</B></td></tr>"
 
-		if(obscured  & ITEM_SLOT_PANTS)
+		if(obscured[SLOT_CHECK_REGULAR]  & ITEM_SLOT_PANTS)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_PANTS]'>[(wear_pants && !(wear_pants.item_flags & ABSTRACT)) ? wear_pants : "<font color=grey>Trousers</font>"]</A></td></tr>"
 
-		if(obscured & ITEM_SLOT_SHOES)
+		if(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_SHOES)
 			dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 		else
 			dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_SHOES]'>[(shoes && !(shoes.item_flags & ABSTRACT)) ? shoes : "<font color=grey>Boots</font>"]</A></td></tr>"
@@ -351,55 +377,52 @@
 		dat += "<tr><td><hr></td></tr>"
 
 	dat += "<tr><td><B>UNDERWEAR</B></td></tr>"
-	var/extra_obscured
-	if(get_erp_pref(/datum/erp_preference/boolean/clothed_sex))
-		extra_obscured = 0
-	else
-		extra_obscured = (obscured << 1) >> 1 //We "cut off" the 24th bit of the extra slots flag so that the bitwise & can work.
+	var/list/armor_cover = check_armor_obscured_slots(TRUE)
+	var/extra_obscured = (armor_cover[SLOT_CHECK_EXTRA] << 1) >> 1 //We "cut off" the 24th bit of the extra slots flag so that the bitwise & can work.
 
-	if((extra_obscured & ITEM_SLOT_UNDER_BOTTOM) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_UNDER_BOTTOM)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_UNDER_BOTTOM];extra_only=[extra_only]'>[(underwear && !(underwear.item_flags & ABSTRACT)) ? underwear : "<font color=grey>Underwear</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_UNDER_TOP) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_UNDER_TOP)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else if(bra && (user == src))
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_UNDER_TOP];extra_only=[extra_only]'>[(bra && !(bra.item_flags & ABSTRACT)) ? bra : "<font color=grey>Bra</font>"]</A> | <A href='byond://?src=[REF(src)];show_storage=[ITEM_SLOT_UNDER_TOP];extra_only=[extra_only]'>["Storage"]</A></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_UNDER_TOP];extra_only=[extra_only]'>[(bra && !(bra.item_flags & ABSTRACT)) ? bra : "<font color=grey>Bra</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_UNDERSHIRT) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_UNDERSHIRT)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_UNDERSHIRT];extra_only=[extra_only]'>[(undershirt && !(undershirt.item_flags & ABSTRACT)) ? undershirt : "<font color=grey>Undershirt</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_ARMSLEEVES) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_ARMSLEEVES)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_ARMSLEEVES];extra_only=[extra_only]'>[(armsleeves && !(armsleeves.item_flags & ABSTRACT)) ? armsleeves : "<font color=grey>Armsleeves</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_GARTER) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_GARTER)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_GARTER];extra_only=[extra_only]'>[(garter && !(garter.item_flags & ABSTRACT)) ? garter : "<font color=grey>Garter</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_CHOKER) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_CHOKER)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_CHOKER];extra_only=[extra_only]'>[(choker && !(choker.item_flags & ABSTRACT)) ? choker : "<font color=grey>Choker</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_EARRING_L) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_EARRING_L)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_EARRING_L];extra_only=[extra_only]'>[(earring_l && !(earring_l.item_flags & ABSTRACT)) ? earring_l : "<font color=grey>Left Earring</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_EARRING_R) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_EARRING_R)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_EARRING_R];extra_only=[extra_only]'>[(earring_r && !(earring_r.item_flags & ABSTRACT)) ? earring_r : "<font color=grey>Right Earring</font>"]</A></td></tr>"
 
-	if((extra_obscured & ITEM_SLOT_SOCKS) && (obscured & ITEM_SLOT_EXTRA))
+	if(extra_obscured & ITEM_SLOT_SOCKS)
 		dat += "<tr><td><font color=grey>Obscured</font></td></tr>"
 	else
 		dat += "<tr><td><A href='byond://?src=[REF(src)];item=[ITEM_SLOT_SOCKS];extra_only=[extra_only]'>[(legwear_socks && !(legwear_socks.item_flags & ABSTRACT)) ? legwear_socks : "<font color=grey>Socks</font>"]</A></td></tr>"
@@ -502,7 +525,7 @@
 		addtimer(CALLBACK(src, PROC_REF(end_electrocution_animation), electrocution_skeleton_anim), anim_duration)
 
 	else //or just do a generic animation
-		flick_overlay_view(image(icon,src,"electrocuted_generic",ABOVE_MOB_LAYER), src, anim_duration)
+		flick_overlay_view(mutable_appearance(icon, "electrocuted_generic", ABOVE_MOB_LAYER), anim_duration)
 
 /mob/living/carbon/human/proc/end_electrocution_animation(mutable_appearance/MA)
 	remove_atom_colour(TEMPORARY_COLOUR_PRIORITY, "#000000")
@@ -1090,17 +1113,17 @@
 		. = TRUE
 
 	// Check and wash stuff that can be covered
-	var/obscured = check_obscured_slots()
+	var/list/obscured = check_obscured_slots()
 
 	if(!is_mouth_covered())
 		. = TRUE
 
-	if(!(obscured & ITEM_SLOT_SHIRT) && wear_shirt?.wash(clean_types))
+	if(!(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_SHIRT) && wear_shirt?.wash(clean_types))
 		update_inv_shirt()
 		. = TRUE
 
 	// Wash hands if exposed
-	if(!gloves && (clean_types & CLEAN_TYPE_BLOOD) && bloody_hands > 0 && !(obscured & ITEM_SLOT_GLOVES))
+	if(!gloves && (clean_types & CLEAN_TYPE_BLOOD) && bloody_hands > 0 && !(obscured[SLOT_CHECK_REGULAR] & ITEM_SLOT_GLOVES))
 		bloody_hands = 0
 		update_inv_gloves()
 		. = TRUE

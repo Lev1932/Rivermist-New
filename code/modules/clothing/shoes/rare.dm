@@ -19,6 +19,8 @@
 	max_integrity = INTEGRITY_STRONGEST
 	abstract_type = /obj/item/clothing/shoes/boots/rare
 
+	material_category = ARMOR_MAT_PLATE
+
 /obj/item/clothing/shoes/boots/rare/elfplate
 	name = "dark elvish plated boots"
 	desc = "Bizarrely shaped boots of exquisite dark elven craftsmanship, forged from steel alloyed in ways unbeknownst to every other species."
@@ -54,7 +56,7 @@
 	item_weight = 7 * STEEL_MULTIPLIER
 
 /obj/item/clothing/shoes/boots/rare/grenzelplate
-	name = "grenzelhoft \"Elvenbane\" sabatons"
+	name = "darkhold \"Elvenbane\" sabatons"
 	allowed_race = list(SPEC_ID_HUMEN, SPEC_ID_AASIMAR)
 	allowed_sex = list(MALE)
 	desc = "The sabatons that march to the tune of a glorious nation. It is said that the boots \
@@ -68,10 +70,10 @@
 	item_weight = 7 * STEEL_MULTIPLIER
 
 /obj/item/clothing/shoes/boots/rare/zaladplate
-	name = "Zaladin segmented plate boots"
+	name = "Zakharani segmented plate boots"
 	allowed_race = list(SPEC_ID_HUMEN)
 	allowed_sex = list(MALE)
-	desc = "The segmented plate boots are a recent alteration to the Zaladin Elite, \
+	desc = "The segmented plate boots are a recent alteration to the Zakharani Elite, \
 			many old warriors decorate their own by tieing ribbons and other knick-knacks \
 			as a homage to the colorful socks they wore in simpler times."
 	body_parts_covered = FEET|LEGS

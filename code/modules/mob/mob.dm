@@ -1085,6 +1085,8 @@ GLOBAL_VAR_INIT(mobids, 1)
  * * magic_flags (optional) A bitfield with the type of magic being cast (see flags at: /datum/component/anti_magic)
 **/
 /mob/proc/can_cast_magic(magic_flags = MAGIC_RESISTANCE)
+	if(HAS_TRAIT(src, TRAIT_NO_SELF_MAGIC)) // Cannot ever cast with the nomagic trait
+		return FALSE
 	if(magic_flags == NONE) // magic with the NONE flag can always be cast
 		return TRUE
 
@@ -1442,7 +1444,7 @@ GLOBAL_VAR_INIT(mobids, 1)
 /mob/proc/adjust_nutrition(change) //Honestly FUCK the oldcoders for putting nutrition on /mob someone else can move it up because holy hell I'd have to fix SO many typechecks
 	if(HAS_TRAIT(src, TRAIT_NOHUNGER))
 		nutrition = NUTRITION_LEVEL_FULL
-	if(client?.manual_afk && change < 0)
+	if((client?.manual_afk || HAS_TRAIT(src, TRAIT_FREEZEHUNGER)) && change < 0)
 		return FALSE
 	nutrition = max(0, nutrition + change)
 	if(nutrition > NUTRITION_LEVEL_FULL)
@@ -1459,7 +1461,7 @@ GLOBAL_VAR_INIT(mobids, 1)
 /mob/proc/adjust_hydration(change)
 	if(HAS_TRAIT(src, TRAIT_NOHUNGER))
 		hydration = HYDRATION_LEVEL_FULL
-	if(client?.manual_afk && change < 0)
+	if((client?.manual_afk || HAS_TRAIT(src, TRAIT_FREEZEHUNGER)) && change < 0)
 		return FALSE
 	hydration = max(0, hydration + change)
 	if(hydration > HYDRATION_LEVEL_FULL)

@@ -92,9 +92,9 @@
 		if(m_intent == MOVE_INTENT_RUN) //can't sprint at full fatigue
 			toggle_rogmove_intent(MOVE_INTENT_WALK, TRUE)
 		if(!emote_override)
-			emote("fatigue", forced = force_emote)
+			INVOKE_ASYNC(src, PROC_REF(emote), "fatigue", forced = force_emote)
 		else
-			emote(emote_override, forced = force_emote)
+			INVOKE_ASYNC(src, PROC_REF(emote), emote_override, forced = force_emote)
 		set_eye_blur_if_lower(4 SECONDS)
 		last_fatigued = world.time + 30 //extra time before fatigue regen sets in
 		stop_attack()
@@ -105,7 +105,7 @@
 		addtimer(CALLBACK(src, PROC_REF(Immobilize), 30), 10)
 		if(iscarbon(src))
 			var/mob/living/carbon/C = src
-			if(C.stress >= 30)
+			if(C.stress >= 50)
 				C.heart_attack()
 			if(!HAS_TRAIT(C, TRAIT_NOHUNGER))
 				if(C.nutrition <= 0)
@@ -137,7 +137,7 @@
 	if(!heart_attacking)
 		var/mob/living/carbon/C = src
 		C.visible_message(C, "<span class='danger'>[C] clutches at [C.p_their()] chest!</span>") // Other people know something is wrong.
-		emote("breathgasp", forced = TRUE)
+		INVOKE_ASYNC(src, PROC_REF(emote), "breathgasp", forced = TRUE)
 		shake_camera(src, 1, 3)
 		set_eye_blur_if_lower(80 SECONDS)
 		var/stuffy = list("ZIZO GRABS MY WEARY HEART!","ARGH! MY HEART BEATS NO MORE!","NO... MY HEART HAS BEAT IT'S LAST!","MY HEART HAS GIVEN UP!","MY HEART BETRAYS ME!","THE METRONOME OF MY LIFE STILLS!")
@@ -161,7 +161,7 @@
 	flash_fullscreen("stressflash")
 	changeNext_move(CLICK_CD_EXHAUSTED)
 	add_stress(/datum/stress_event/freakout)
-	var/heart_value = 30
+	var/heart_value = 50
 	if(HAS_TRAIT(src, TRAIT_WEAK_HEART))
 		heart_value *= 0.5
 	if(stress >= heart_value)
